@@ -55,7 +55,6 @@ class TypeScriptLanguageService {
         this.documentsHandlers = options.documentsHandlers || [];
 
         this.libFolder = this.normalizePath(path.dirname(ts.sys.getExecutingFilePath()));
-        console.log({ libFolder: this.libFolder });
         this.languageService = this.createLanguageService();
     }
 
@@ -95,7 +94,6 @@ class TypeScriptLanguageService {
             getCompilationSettings: () => this.compilerOptions,
             getDefaultLibFileName: (options) => {
                 const libPath = ts.getDefaultLibFilePath(options);
-                console.log({ libPath });
                 return this.normalizePath(libPath);
             },
             fileExists: (fileName) => this.doesFileExist(fileName),
@@ -345,10 +343,12 @@ class TypeScriptLanguageService {
                 this.allowedScripts!.add(dependency);
             });
         });
+        this.program = null;
     }
 
     public clearProgramRestriction() {
         this.allowedScripts = null;
+        this.program = null;
     }
 
     public getScriptsDependantOf(
