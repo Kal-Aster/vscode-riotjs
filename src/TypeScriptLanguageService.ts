@@ -351,27 +351,28 @@ class TypeScriptLanguageService {
         this.program = null;
     }
 
-    public getScriptsDependantOf(
-        fileName: string,
-        dependantScripts: Set<string> = new Set(),
-        shouldIncludeItself = false
-    ) {
+    public getScriptsDependantOf(fileName: string) {
         const normalizedFileName = this.normalizePath(fileName);
-        this.dependencies.forEach((deps, script) => {
-            if (!deps.has(normalizedFileName)) {
-                return;
+        const scriptsToCheck = [ normalizedFileName ];
+        const scriptChecked = new Set<string>();
+
+        const dependantScripts = new Set<string>();
+        while (scriptsToCheck.length > 0) {
+            const script = scriptsToCheck.shift()!;
+
+            if (scriptChecked.has(script)) {
+                continue;
             }
+            scriptChecked.add(script);
 
-            if (dependantScripts.has(script)) {
-                return;
-            }
+            this.dependencies.forEach((deps, possibleDependant) => {
+                if (!deps.has(script)) {
+                    return;
+                }
 
-            this.getScriptsDependantOf(script, dependantScripts, true);
-            dependantScripts.add(script);
-        });
-
-        if (!shouldIncludeItself) {
-            dependantScripts.delete(fileName);
+                dependantScripts.add(possibleDependant);
+                scriptsToCheck.push(possibleDependant);
+            });
         }
 
         return dependantScripts;
@@ -397,6 +398,7 @@ class TypeScriptLanguageService {
                 content, version: 0
             });
         }
+        this.program = null;
     }
 
     public hasDocument(fileName: string) {
@@ -409,9 +411,12 @@ class TypeScriptLanguageService {
         this.documents.delete(
             this.normalizePath(fileName)
         );
+        this.program = null;
+    }
 
-        // here should check if any other document
-        // is in the program just because of this one
+    public clearDocuments() {
+        this.documents.clear();
+        this.program = null;
     }
 
     public getSourceFile(fileName: string) {
