@@ -34,7 +34,7 @@ function getFSExistingSourceFile(
     if (existsSync(filePath)) {
         return program.getSourceFile(filePath);
     }
-    const sourceRiotFilePath = filePath.replace(/.d.ts$/, "");
+    const sourceRiotFilePath = filePath.replace(/\.d\.ts$/, "");
 
     if (!existsSync(sourceRiotFilePath)) {
         return undefined;
@@ -123,24 +123,30 @@ export default function getDefinitions(
                     scriptPosition,
                     rangeStart
                 }, null, 2));
-                range = Range.create(
-                    {
-                        line: rangeStart.line + scriptPosition.line,
-                        character: (
-                            rangeStart.character + (rangeStart.line === 0 ?
-                                scriptPosition.character : 0
+                if (sourceFile.fileName === filePath) {
+
+                    range = Range.create(
+                        {
+                            line: rangeStart.line + scriptPosition.line,
+                            character: (
+                                rangeStart.character + (rangeStart.line === 0 ?
+                                    scriptPosition.character : 0
+                                )
                             )
-                        )
-                    },
-                    {
-                        line: rangeEnd.line + scriptPosition.line,
-                        character: (
-                            rangeEnd.character + (rangeEnd.line === 0 ?
-                                scriptPosition.character : 0
+                        },
+                        {
+                            line: rangeEnd.line + scriptPosition.line,
+                            character: (
+                                rangeEnd.character + (rangeEnd.line === 0 ?
+                                    scriptPosition.character : 0
+                                )
                             )
-                        )
-                    }
-                );
+                        }
+                    );
+                } else {
+                    // here should use source map of declaration to map to actual position
+                    range = Range.create({ line: 0, character: 0 }, { line: 0, character: 0 });
+                }
             } else {
                 range = Range.create(
                     rangeStart, rangeEnd
