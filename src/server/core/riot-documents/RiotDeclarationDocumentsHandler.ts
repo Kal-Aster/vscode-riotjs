@@ -14,7 +14,7 @@ const RiotDeclarationDocumentsHandler: (
 ) = {
     extension: ".riot.d.ts",
     doesFileExists(filePath) {
-        const baseFilePath = filePath.replace(/.d.ts$/, "");
+        const baseFilePath = filePath.replace(/\.d\.ts$/, "");
         
         const baseFileURI = URI.file(baseFilePath).toString();
         
@@ -24,7 +24,7 @@ const RiotDeclarationDocumentsHandler: (
         );
     },
     getDocumentContent(filePath) {
-        const baseFilePath = filePath.replace(/.d.ts$/, "");
+        const baseFilePath = filePath.replace(/\.d\.ts$/, "");
         
         const getText = getTextGetterByFilePath(baseFilePath);
         if (getText == null) {
@@ -37,7 +37,7 @@ const RiotDeclarationDocumentsHandler: (
         return declaration ?? undefined;
     },
     getDocumentVersion(filePath) {
-        const baseFilePath = filePath.replace(/.d.ts$/, "");
+        const baseFilePath = filePath.replace(/\.d\.ts$/, "");
         const version = this.getScriptVersion(baseFilePath);
         return version;
     },

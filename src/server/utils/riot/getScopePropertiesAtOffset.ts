@@ -31,7 +31,7 @@ export default function getScopePropertiesAtOffset(
                 componentsProperty,
                 tsLanguageService.getProgram().getTypeChecker(),
                 scopeComponentName
-            )?.replace(/.d.ts$/, "");
+            )?.replace(/\.d\.ts$/, "");
             if (sourceFilePath == null) {
                 return null;
             }

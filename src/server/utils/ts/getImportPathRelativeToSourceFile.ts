@@ -17,13 +17,13 @@ export default function getImportPathRelativeToSource(
     const relativePath = path.relative(path.dirname(sourceFilePath), importAbsoluteFilePath);
     if (relativePath.startsWith(".")) {
         return (trimTsExtension ?
-            relativePath.replace(/(?:.d)?.ts$/, "") :
+            relativePath.replace(/(?:\.d)?\.ts$/, "") :
             relativePath
         );
     }
     if (!relativePath.includes("/")) {
         return (trimTsExtension ?
-            `./${relativePath}`.replace(/(?:.d)?.ts$/, "") : 
+            `./${relativePath}`.replace(/(?:\.d)?\.ts$/, "") : 
             `./${relativePath}`
         );
     }
