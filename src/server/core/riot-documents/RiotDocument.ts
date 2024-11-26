@@ -19,6 +19,7 @@ import getTypeWithFilteredUndefined from "../../utils/ts/getTypeWithFilteredUnde
 import isPropertyAccessibleViaDotSyntax from "../../utils/ts/isPropertyAccessibleViaDotSyntax";
 
 import defaultRiotComponentDeclaration from "./defaultRiotComponentDeclaration";
+import RiotDeclarationDocumentsHandler from "./RiotDeclarationDocumentsHandler";
 
 export default class RiotDocument {
     private parserResult: ParserResult;
@@ -211,23 +212,30 @@ export default class RiotDocument {
         return this.componentsProperty!;
     }
 
-    getInternalDeclaration(tsLanguageService: TypeScriptLanguageService) {
+    getInternalDeclaration() {
         if (this.internalDeclaration != null) {
             return this.internalDeclaration;
         }
 
-        if (this.parserResult.output.javascript == null) {
+        if (
+            this.parserResult.output.javascript == null ||
+            this.parserResult.output.javascript.text == null
+        ) {
             return (
                 this.internalDeclaration = defaultRiotComponentDeclaration
             );
         }
 
-        tsLanguageService.restrictProgramToScripts(
-            [ this.filePath, `${this.filePath}.d.ts` ]
+        const tsLanguageService = new TypeScriptLanguageService({
+            documentsHandlers: [RiotDeclarationDocumentsHandler]
+        });
+        tsLanguageService.updateDocument(
+            this.filePath,
+            this.parserResult.output.javascript.text.text
         );
         const sourceFile = tsLanguageService.getSourceFile(this.filePath);
         if (sourceFile == null) {
-            tsLanguageService.clearProgramRestriction();
+            tsLanguageService.dispose();
             return (
                 this.internalDeclaration = defaultRiotComponentDeclaration
             );
@@ -236,17 +244,17 @@ export default class RiotDocument {
         const internalDeclaration = getInternalDeclarationOfSourceFile(
             sourceFile, tsLanguageService.getProgram()
         ) || defaultRiotComponentDeclaration;
-        tsLanguageService.clearProgramRestriction();
         this.internalDeclaration = internalDeclaration;
 
+        tsLanguageService.dispose();
         return internalDeclaration;
     }
 
-    getExternalDeclaration(tsLanguageService: TypeScriptLanguageService) {
+    getExternalDeclaration() {
         if (this.externalDeclaration != null) {
             return this.externalDeclaration;
         }
-        const internalDeclaration = this.getInternalDeclaration(tsLanguageService);
+        const internalDeclaration = this.getInternalDeclaration();
 
         const externalDeclaration = convertInternalDeclarationToExternal(
             internalDeclaration
