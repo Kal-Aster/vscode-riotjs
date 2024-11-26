@@ -1,3 +1,6 @@
+import ts from 'typescript';
+
+import { existsSync } from 'fs';
 import { Range } from 'vscode-languageserver/node';
 
 import touchRiotDocument from '../../core/riot-documents/touch';
@@ -19,6 +22,25 @@ namespace getDefinitions {
     };
 }
 
+
+function getFSExistingSourceFile(
+    filePath: string,
+    program: ts.Program
+) {
+    if (!filePath.endsWith(".riot.d.ts")) {
+        return program.getSourceFile(filePath);
+    }
+
+    if (existsSync(filePath)) {
+        return program.getSourceFile(filePath);
+    }
+    const sourceRiotFilePath = filePath.replace(/.d.ts$/, "");
+
+    if (!existsSync(sourceRiotFilePath)) {
+        return undefined;
+    }
+    return program.getSourceFile(sourceRiotFilePath);
+}
 
 export default function getDefinitions(
     {
@@ -69,13 +91,16 @@ export default function getDefinitions(
     }
 
     if (!definitions || definitions.length === 0) {
+        connection.console.error("Definition not found");
         return [];
     }
 
-    const program = tsLanguageService.getProgram()!;
+    const program = tsLanguageService.getProgram();
 
     return definitions.map(definition => {
-        const sourceFile = program.getSourceFile(definition.fileName);
+        const sourceFile = getFSExistingSourceFile(
+            definition.fileName, program
+        );
         if (sourceFile == null) {
             return null;
         }
@@ -88,23 +113,39 @@ export default function getDefinitions(
         );
 
         let range: Range;
-        if (definition.fileName === filePath) {
-            range = Range.create(
-                {
-                    line: rangeStart.line + scriptPosition.line,
-                    character: (
-                        rangeStart.character +
-                        scriptPosition.character
-                    )
-                },
-                {
-                    line: rangeEnd.line + scriptPosition.line,
-                    character: (
-                        rangeEnd.character +
-                        scriptPosition.character
-                    )
-                }
+        if (sourceFile.fileName.endsWith(".riot")) {
+            const definitionRiotDocument = (sourceFile.fileName === filePath ?
+                riotDocument : touchRiotDocument(sourceFile.fileName, null)
             );
+            const scriptPosition = definitionRiotDocument?.getScriptPosition();
+            if (definitionRiotDocument != null && scriptPosition != null) {
+                connection.console.log(JSON.stringify({
+                    scriptPosition,
+                    rangeStart
+                }, null, 2));
+                range = Range.create(
+                    {
+                        line: rangeStart.line + scriptPosition.line,
+                        character: (
+                            rangeStart.character + (rangeStart.line === 0 ?
+                                scriptPosition.character : 0
+                            )
+                        )
+                    },
+                    {
+                        line: rangeEnd.line + scriptPosition.line,
+                        character: (
+                            rangeEnd.character + (rangeEnd.line === 0 ?
+                                scriptPosition.character : 0
+                            )
+                        )
+                    }
+                );
+            } else {
+                range = Range.create(
+                    rangeStart, rangeEnd
+                );
+            }
         } else {
             range = Range.create(
                 rangeStart, rangeEnd
@@ -112,7 +153,7 @@ export default function getDefinitions(
         }
 
         return {
-            path: definition.fileName,
+            path: sourceFile.fileName,
             range,
             targetSelectionRange: range
         } as getDefinitions.DefinitionResult;
