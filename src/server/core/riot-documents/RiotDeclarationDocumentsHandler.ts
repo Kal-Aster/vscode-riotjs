@@ -1,9 +1,11 @@
-import { existsSync, readFileSync } from "fs";
+import { existsSync } from "fs";
 import { URI } from "vscode-uri";
 
 import TypeScriptLanguageService from "../../../TypeScriptLanguageService";
 
 import getComponentDeclaration from "../../features/riot/getComponentDeclaration";
+
+import getTextGetterByFilePath from "../../utils/riot/getTextGetterByFilePath";
 
 import getDocument from "../getDocument";
 
@@ -24,27 +26,13 @@ const RiotDeclarationDocumentsHandler: (
     getDocumentContent(filePath) {
         const baseFilePath = filePath.replace(/.d.ts$/, "");
         
-        const baseFileURI = URI.file(baseFilePath).toString();
-        
-        const baseDocument = getDocument(baseFileURI);
-        const baseFileExists = existsSync(baseFilePath);
-        if (baseDocument == null && !baseFileExists) {
+        const getText = getTextGetterByFilePath(baseFilePath);
+        if (getText == null) {
             return undefined;
         }
 
         const declaration = getComponentDeclaration(
-            baseFilePath,
-            () => {
-                if (baseDocument != null) {
-                    return baseDocument.getText()
-                } else {
-                    return readFileSync(
-                        baseFilePath,
-                        { encoding: "utf-8" }
-                    );
-                }
-            },
-            "EXTERNAL"
+            baseFilePath, getText, "EXTERNAL"
         );
         return declaration ?? undefined;
     },
