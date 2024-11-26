@@ -4,11 +4,11 @@ import updateRiotDocument from "./update";
 
 export default function touchRiotDocument(
     filePath: string,
-    getText: () => string
+    getText: (() => string) | null
 ) {
     const riotDocument = getState().riotDocuments.get(filePath);
-    if (riotDocument != null) {
-        return riotDocument;
+    if (riotDocument != null || getText == null) {
+        return riotDocument || null;
     }
 
     return updateRiotDocument(filePath, getText());
