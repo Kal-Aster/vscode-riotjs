@@ -10,6 +10,7 @@ import getDefaultExportedType from "../../features/ts/getDefaultExportedType";
 import getInternalDeclarationOfSourceFile from "../../features/ts/getInternalDeclarationOfSourceFile";
 
 import pathToUri from "../../utils/document/pathToUri";
+import positionAtOffset from "../../utils/document/positionAtOffset";
 
 import convertInternalDeclarationToExternal from "../../utils/riot/convertInternalDeclarationToExternal";
 
@@ -23,7 +24,6 @@ import isPropertyAccessibleViaDotSyntax from "../../utils/ts/isPropertyAccessibl
 
 import defaultRiotComponentDeclaration from "./defaultRiotComponentDeclaration";
 import RiotDeclarationDocumentsHandler from "./RiotDeclarationDocumentsHandler";
-import positionAtOffset from "../../utils/document/positionAtOffset";
 
 export default class RiotDocument {
     private parserResult: ParserResult;
@@ -64,13 +64,15 @@ export default class RiotDocument {
             parsedContent.output.javascript != null &&
             parsedContent.output.javascript.text != null
         ) {
+            const {
+                start, text
+            } = parsedContent.output.javascript.text;
             this.scriptPosition = positionAtOffset(
-                content, parsedContent.output.javascript.text.start
+                content, start
             );
 
             tsLanguageService.updateDocument(
-                this.filePath,
-                parsedContent.output.javascript.text.text
+                this.filePath, text
             );
         } else {
             this.scriptPosition = null;
@@ -85,14 +87,17 @@ export default class RiotDocument {
             parsedContent.output.css != null &&
             parsedContent.output.css.text != null
         ) {
+            const {
+                start, text
+            } = parsedContent.output.css.text;
+
             this.cssEmbeddedDocument = TextDocument.create(
                 pathToUri(this.filePath),
-                "css", Date.now(),
-                parsedContent.output.css.text.text
+                "css", Date.now(), text
             );
 
             this.cssPosition = positionAtOffset(
-                content, parsedContent.output.css.text.start
+                content, start
             );
         }
 

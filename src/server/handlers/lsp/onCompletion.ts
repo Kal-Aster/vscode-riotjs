@@ -4,8 +4,6 @@ import {
     CompletionParams
 } from "vscode-languageserver/node";
 
-import CompletionConverter from "../../../CompletionConverter";
-
 import getDocument from "../../core/getDocument";
 
 import touchRiotDocument from "../../core/riot-documents/touch";
@@ -19,6 +17,7 @@ import getScriptCompletions from "../../features/lsp/getScriptCompletions";
 import getContentTypeAtOffset from "../../features/riot/getContentTypeAtOffset";
 
 import uriToPath from "../../utils/document/uriToPath";
+import convertTsCompletions from "../../utils/completions/convertTsCompletions";
 
 export default async function onCompletion(
     params: CompletionParams
@@ -65,9 +64,15 @@ export default async function onCompletion(
                     tsLanguageService, connection
                 });
 
-                // TODO: add script offset to range of replacement
+                const convertedCompletions = convertTsCompletions(
+                    completions,
+                    document.getText(),
+                    riotDocument.getScriptPosition()!
+                );
 
-                return CompletionConverter.convert(completions);
+                connection.console.log(JSON.stringify(convertedCompletions.items.slice(0, 5), null, 2));
+
+                return convertedCompletions;
             }
             case "expression": {
                 const completions = getExpressionCompletions({
@@ -77,9 +82,11 @@ export default async function onCompletion(
                     tsLanguageService, connection
                 });
 
-                // TODO: add script offset to range of replacement
-
-                return CompletionConverter.convert(completions);
+                return convertTsCompletions(
+                    completions,
+                    document.getText(),
+                    riotDocument.getScriptPosition()!
+                );
             }
             case "css": {
                 const completions = getCssCompletions({
