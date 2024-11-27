@@ -1,12 +1,15 @@
 import ts from "typescript";
 
 import { compile, CompilerOutput } from "@riotjs/compiler";
-import { Position } from "vscode-languageserver-textdocument"
+import { LanguageService, Stylesheet } from "vscode-css-languageservice";
+import { Position, TextDocument } from "vscode-languageserver-textdocument"
 
 import TypeScriptLanguageService from "../../../TypeScriptLanguageService";
 
 import getDefaultExportedType from "../../features/ts/getDefaultExportedType";
 import getInternalDeclarationOfSourceFile from "../../features/ts/getInternalDeclarationOfSourceFile";
+
+import pathToUri from "../../utils/document/pathToUri";
 
 import convertInternalDeclarationToExternal from "../../utils/riot/convertInternalDeclarationToExternal";
 
@@ -20,10 +23,15 @@ import isPropertyAccessibleViaDotSyntax from "../../utils/ts/isPropertyAccessibl
 
 import defaultRiotComponentDeclaration from "./defaultRiotComponentDeclaration";
 import RiotDeclarationDocumentsHandler from "./RiotDeclarationDocumentsHandler";
+import positionAtOffset from "../../utils/document/positionAtOffset";
 
 export default class RiotDocument {
     private parserResult: ParserResult;
     private scriptPosition: null | Position = null;
+
+    private cssEmbeddedDocument: TextDocument | null;
+    private stylesheet: Stylesheet | null = null;
+    private cssPosition: null | Position = null;
 
     private componentProperties: Record<string, string> | null | undefined;
     private componentsProperty: ts.Type | null | undefined;
@@ -56,14 +64,9 @@ export default class RiotDocument {
             parsedContent.output.javascript != null &&
             parsedContent.output.javascript.text != null
         ) {
-            const contentBeforeScript = content.substring(
-                0, parsedContent.output.javascript.text.start
+            this.scriptPosition = positionAtOffset(
+                content, parsedContent.output.javascript.text.start
             );
-            const lines = contentBeforeScript.split("\n");
-            this.scriptPosition = {
-                line: lines.length - 1,
-                character: lines.at(-1)!.length - 1
-            };
 
             tsLanguageService.updateDocument(
                 this.filePath,
@@ -73,6 +76,24 @@ export default class RiotDocument {
             this.scriptPosition = null;
 
             tsLanguageService.removeDocument(this.filePath);
+        }
+        
+        this.cssEmbeddedDocument = null;
+        this.stylesheet = null;
+        this.cssPosition = null;
+        if (
+            parsedContent.output.css != null &&
+            parsedContent.output.css.text != null
+        ) {
+            this.cssEmbeddedDocument = TextDocument.create(
+                pathToUri(this.filePath),
+                "css", Date.now(),
+                parsedContent.output.css.text.text
+            );
+
+            this.cssPosition = positionAtOffset(
+                content, parsedContent.output.css.text.start
+            );
         }
 
         this.parserResult = parsedContent;
@@ -212,6 +233,14 @@ export default class RiotDocument {
         return this.componentsProperty!;
     }
 
+    getCssEmbeddedDocument() {
+        return this.cssEmbeddedDocument;
+    }
+
+    getCssPosition() {
+        return this.cssPosition;
+    }
+
     getInternalDeclaration() {
         if (this.internalDeclaration != null) {
             return this.internalDeclaration;
@@ -270,5 +299,25 @@ export default class RiotDocument {
 
     getScriptPosition() {
         return this.scriptPosition;
+    }
+
+    getStylesheet(
+        cssLanguageService: LanguageService
+    ) {
+        if (this.stylesheet != null) {
+            return this.stylesheet;
+        }
+
+        if (this.cssEmbeddedDocument == null) {
+            return null;
+        }
+        
+        return this.stylesheet = cssLanguageService.parseStylesheet(
+            this.cssEmbeddedDocument
+        );
+    }
+
+    getText() {
+        return this.parserResult.data;
     }
 }

@@ -12,6 +12,7 @@ import touchRiotDocument from "../../core/riot-documents/touch";
 
 import { getState } from "../../core/state";
 
+import getCssCompletions from "../../features/lsp/getCssCompletions";
 import getExpressionCompletions from "../../features/lsp/getExpressionCompletions";
 import getScriptCompletions from "../../features/lsp/getScriptCompletions";
 
@@ -28,6 +29,7 @@ export default async function onCompletion(
     const {
         connection,
         tsLanguageService,
+        cssLanguageService,
         htmlLanguageService
     } = getState()
 
@@ -80,14 +82,15 @@ export default async function onCompletion(
                 return CompletionConverter.convert(completions);
             }
             case "css": {
-                // TODO: should extract content from style tag, and remap position after completions
-                // connection.console.log("Requested position is inside style");
-                // const parsedStylesheet = cssLanguageService.parseStylesheet(document);
-                // const cssCompletions = cssLanguageService.doComplete(document, params.position, parsedStylesheet);
-                return {
-                    isIncomplete: false,
-                    items: []
-                };
+                const completions = getCssCompletions({
+                    filePath,
+                    getText: () => document.getText(),
+                    offset,
+                    cssLanguageService,
+                    connection
+                });
+
+                return completions;
             }
             case "template": {
                 connection.console.log("Requested position is inside html");

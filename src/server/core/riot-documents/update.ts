@@ -15,12 +15,15 @@ export default function updateRiotDocument(
         if (riotDocuments.has(filePath)) {
             const riotDocument = riotDocuments.get(filePath)!;
             return riotDocument.update(
-                content, tsLanguageService, riotDocuments
+                content,
+                tsLanguageService,
+                riotDocuments
             );
         }
         const riotDocument = new RiotDocument(
             filePath, content,
-            tsLanguageService, riotDocuments
+            tsLanguageService,
+            riotDocuments
         )
         riotDocuments.set(filePath, riotDocument);
         return riotDocument;
