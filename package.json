@@ -2,13 +2,39 @@
   "name": "vscode-riotjs",
   "displayName": "RiotJS Support",
   "description": "RiotJS syntax highlighting and autocompletion for VSCode",
-  "version": "0.0.1",
+  "version": "0.1.0",
+  "repository": {
+    "url": "github:Kal-Aster/vscode-riotjs"
+  },
+  "license": "MIT",
   "engines": {
     "vscode": "^1.82.0"
   },
+  "publisher": "KalAster",
   "categories": [
     "Programming Languages"
   ],
+  "keywords": [
+    "riot",
+    "riotjs",
+    "riot.js",
+    "web components",
+    "components",
+    "javascript",
+    "typescript",
+    "html",
+    "css",
+    "template",
+    "syntax",
+    "intellisense",
+    "autocomplete",
+    "language server",
+    "lsp"
+  ],
+  "galleryBanner": {
+    "color": "#ED1846",
+    "theme": "dark"
+  },
   "main": "./build/extension.js",
   "contributes": {
     "languages": [
