@@ -2,7 +2,7 @@
   "name": "vscode-riotjs",
   "displayName": "RiotJS Support",
   "description": "RiotJS syntax highlighting and autocompletion for VSCode",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "repository": {
     "url": "github:Kal-Aster/vscode-riotjs"
   },
@@ -31,6 +31,7 @@
     "language server",
     "lsp"
   ],
+  "icon": "icon/icon.png",
   "galleryBanner": {
     "color": "#ED1846",
     "theme": "dark"
@@ -169,6 +170,7 @@
     "tsx": "^4.19.2"
   },
   "files": [
+    "icon/icon.png",
     "build/*",
     "syntaxes/*",
     "language-configuration.json",
