@@ -25,6 +25,7 @@ import onLogCompiledComponent from "./handlers/log/onLogCompiledComponent";
 import onLogContentTypeAtCursor from "./handlers/log/onLogContentTypeAtCursor";
 import onLogDeclaration from "./handlers/log/onLogDeclaration";
 import onLogExpressionScopeFunction from "./handlers/log/onLogExpressionScopeFunction";
+import onLogParsedComponent from "./handlers/log/onLogParsedComponent";
 import onLogProgramFiles from "./handlers/log/onLogProgramFiles";
 import onLogScriptContent from "./handlers/log/onLogScriptContent";
 import onLogSlots from "./handlers/log/onLogSlots";
@@ -79,6 +80,7 @@ registerCustomHandlers(
         onLogContentTypeAtCursor,
         onLogDeclaration,
         onLogExpressionScopeFunction,
+        onLogParsedComponent,
         onLogProgramFiles,
         onLogScriptContent,
         onLogSlots,

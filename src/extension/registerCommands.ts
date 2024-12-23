@@ -7,6 +7,7 @@ import logCompiledComponent from "./commands/logCompiledComponent";
 import logContentTypeAtCursor from "./commands/logContentTypeAtCursor";
 import logDeclaration from "./commands/logDeclaration";
 import logExpressionScopeFunction from "./commands/logExpressionScopeFunction";
+import logParsedComponent from "./commands/logParsedComponent";
 import logProgramFiles from "./commands/logProgramFiles";
 import logScriptContent from "./commands/logScriptContent";
 import logSlots from "./commands/logSlots";
@@ -23,6 +24,7 @@ export default function registerCommands(context: ExtensionContext) {
             logDeclaration("EXTERNAL")
         },
         logExpressionScopeFunction,
+        logParsedComponent,
         logProgramFiles,
         logScriptContent,
         logSlots,

@@ -2,7 +2,7 @@
   "name": "vscode-riotjs",
   "displayName": "RiotJS Support",
   "description": "RiotJS syntax highlighting and autocompletion for VSCode",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "repository": {
     "url": "github:Kal-Aster/vscode-riotjs"
   },
@@ -100,6 +100,12 @@
       {
         "command": "riotjs.logInternalDeclaration",
         "title": "Log Internal Declaration",
+        "category": "RiotJS",
+        "enablement": "editorLangId == riotjs"
+      },
+      {
+        "command": "riotjs.logParsedComponent",
+        "title": "Log Parsed Component",
         "category": "RiotJS",
         "enablement": "editorLangId == riotjs"
       },
