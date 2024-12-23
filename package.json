@@ -2,7 +2,7 @@
   "name": "vscode-riotjs",
   "displayName": "RiotJS Support",
   "description": "RiotJS syntax highlighting and autocompletion for VSCode",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "repository": {
     "url": "github:Kal-Aster/vscode-riotjs"
   },
