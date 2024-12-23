@@ -1,13 +1,26 @@
-export default function getTagOpeningState(
-    offset: number, text: string,
-    tagName: string, matchIndex: number,
-) {
-    if (offset >= text.length) {
-        throw new Error("Text length should be greater than offset");
+import isVoidTag from "./isVoidTag";
+import OpenedTag from "./OpenedTag";
+
+export default function shouldCloseTag(
+    offset: number,
+    text: string,
+    log?: (message: string) => void
+): {
+    shouldClose: false
+} | {
+    shouldClose: true,
+    tagName: string,
+    voidTag: boolean,
+    hasOpeningTagClosingChar: boolean,
+    suggestedIndex: number
+} {
+    if (offset > text.length) {
+        throw new Error(`Offset cannot be greater than text length: ${offset} > ${text.length}`);
     }
     const scope: Array<
         "openingtag" |
         "openedtag" |
+        "selfclosingtag" |
         "closingtag" |
         "closedtag" |
         "text" |
@@ -19,13 +32,14 @@ export default function getTagOpeningState(
         "expression" |
         "curlybrackets" |
         "squarebrackets" |
-        "parentheses"
+        "parentheses" |
+        "invalidclosingtagname" |
+        "invalidtagname" |
+        "invalidselfclosing"
     > = [
-        "openingtag"
+        "text"
     ];
-    const openedTags = [
-        tagName
-    ];
+    const openedTags: Array<OpenedTag> = [];
     let firstTagAttributesCount = 0;
 
     let tagEndingCharIndex;
@@ -36,7 +50,7 @@ export default function getTagOpeningState(
         tagEndingCharIndex: number | undefined
     } | undefined;
     
-    let charIndex = matchIndex + 1 + tagName.length;
+    let charIndex = 0;
     if (charIndex === offset) {
         stateAtOffset = {
             scope: scope.at(-1),
@@ -44,20 +58,26 @@ export default function getTagOpeningState(
             tagEndingCharIndex
         };
     }
+
+    let tagToCheck: OpenedTag | null = null;
+    let lastScope: (typeof scope[0]) | null = null;
     outer: for (;
         charIndex < text.length; charIndex++
     ) {
         const currentScope = scope.at(-1);
-        if (currentScope == null) {
+        const hasChangedScope = lastScope !== currentScope;
+        if (hasChangedScope) {
+            lastScope = currentScope || null;
+        }
+        if (
+            currentScope == null ||
+            currentScope.startsWith("invalid")
+        ) {
             break;
         }
 
-        if (
-            currentScope === "text" &&
-            stateAtOffset != null &&
-            tagEndingCharIndex === undefined
-        ) {
-            tagEndingCharIndex = charIndex;
+        if (charIndex === offset) {
+            tagToCheck = openedTags.at(-1) || null;
         }
 
         const char = text[charIndex];
@@ -65,7 +85,13 @@ export default function getTagOpeningState(
             case "text": {
                 if (char === "<") {
                     scope.splice(-1, 1, "openedtag");
-                    openedTags.push("");
+                    openedTags.push({
+                        name: "",
+                        openingIndex: charIndex,
+                        openingTagClosingCharIndex: -1,
+                        closingIndex: -1,
+                        attributeListEndIndex: -1
+                    });
                     break;
                 }
                 if (char === "{") {
@@ -75,39 +101,59 @@ export default function getTagOpeningState(
                 break;
             }
             case "openedtag": {
-                const openedTag = openedTags.at(-1);
+                const openedTag = openedTags.at(-1)!;
                 if (char === "/") {
-                    if (openedTag !== "") {
-                        break outer;
+                    if (openedTag.name !== "") {
+                        openedTag.closingIndex = charIndex;
+                        scope.splice(-1, 1, "selfclosingtag");
+                        break;
                     }
                     openedTags.pop();
                     scope.splice(-1, 1, "closedtag");
                     break;
                 }
                 if (char.match(/\s/)) {
-                    scope.splice(-1, 1, "openingtag");
+                    if (openedTag.name !== "") {
+                        const previousTag = openedTags.at(-2);
+                        if (previousTag != null && isVoidTag(previousTag.name)) {
+                            openedTags.splice(-2, 1);
+                        }
+                        scope.splice(-1, 1, "openingtag");
+                    }
                     break;
                 }
                 if (char === ">") {
-                    if (openedTag === "") {
-                        break outer;
+                    if (openedTag.name === "") {
+                        scope.splice(-1, 1, "invalidtagname");
+                        break;
                     }
-                    scope.push("text");
+                    openedTag.openingTagClosingCharIndex = charIndex;
+                    if (isVoidTag(openedTag.name)) {
+                        openedTags.splice(-1, 1);
+                        scope.splice(-1, 1, "text");
+                    } else {
+                        scope.push("text");
+                    }
                     break;
                 }
-                openedTags[openedTags.length - 1] = openedTag + char;
+                openedTag.name = openedTag.name + char;
                 break;
             }
             case "closedtag": {
-                const openedTag = openedTags.at(-1)!;
+                let openedTag = openedTags.at(-1)!;
+                if (char.match(/\s/)) {
+                    break;
+                }
                 const closingTag = text.substring(
-                    charIndex, charIndex + openedTag.length
+                    charIndex, charIndex + openedTag.name.length
                 );
-                if (closingTag !== openedTag) {
-                    break outer;
+                if (closingTag !== openedTag.name) {
+                    scope.splice(-1, 1, "invalidclosingtagname");
+                    break;
                 }
 
-                charIndex += openedTag.length - 1;
+                charIndex += openedTag.name.length - 1;
+                openedTag.closingIndex = text.lastIndexOf("<", charIndex);
                 scope.splice(-1, 1, "closingtag");
                 break;
             }
@@ -133,11 +179,32 @@ export default function getTagOpeningState(
                 }
                 break outer;
             }
-            case "openingtag": {
+            case "selfclosingtag": {
                 if (char.match(/\s/)) {
                     break;
                 }
                 if (char === ">") {
+                    openedTags.pop()!.openingTagClosingCharIndex = charIndex;
+                    scope.splice(-1, 1, "text");
+                    break;
+                }
+                scope.splice(-1, 1, "invalidselfclosing");
+                break;
+            }
+            case "openingtag": {
+                const openedTag = openedTags.at(-1)!;
+                if (hasChangedScope) {
+                    openedTag.attributeListEndIndex = charIndex;
+                }
+                if (char.match(/\s/)) {
+                    break;
+                }
+                if (char === "/") {
+                    scope.splice(-1, 1, "selfclosingtag");
+                    break;
+                }
+                if (char === ">") {
+                    openedTag.openingTagClosingCharIndex = charIndex;
                     scope.push("text");
                     break;
                 }
@@ -264,12 +331,38 @@ export default function getTagOpeningState(
         }
     }
 
+    log?.(JSON.stringify({
+        tagToCheck,
+        openedTags: openedTags.map(t => {
+            return {
+                ...t,
+                void: isVoidTag(t.name),
+                snippet: text.substring(t.openingIndex, t.openingIndex + 30)
+            }
+        })
+    }, null, 2));
+
+    if (tagToCheck == null) {
+        return { shouldClose: false };
+    }
+
+    const isVoid = isVoidTag(tagToCheck.name);
+
+    const hasOpeningTagClosingChar = tagToCheck.openingTagClosingCharIndex > -1;
+
+    if (isVoid && hasOpeningTagClosingChar) {
+        return { shouldClose: false };
+    }
+
+    if (tagToCheck.closingIndex > -1) {
+        return { shouldClose: false };
+    }
+
     return {
-        finalState: {
-            scope: scope.at(-1),
-            attributesCount: firstTagAttributesCount,
-            tagEndingCharIndex
-        },
-        stateAtOffset
+        shouldClose: true,
+        tagName: tagToCheck.name,
+        voidTag: isVoid,
+        hasOpeningTagClosingChar,
+        suggestedIndex: hasOpeningTagClosingChar ? tagToCheck.openingTagClosingCharIndex + 1 : tagToCheck.attributeListEndIndex
     };
 }

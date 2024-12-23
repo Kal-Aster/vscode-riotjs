@@ -5,8 +5,9 @@ import {
 } from "vscode";
 
 import getContentTypeAtCursor from "./getContentTypeAtCursor";
-import getTagOpeningState from "./utils/getTagOpeningState";
 import state from "./state";
+
+import shouldCloseTag from "./utils/shouldCloseTag";
 
 const openingTagRegex = /<([\w-]+)(?:\s+[^<]*)*$/;
 
@@ -14,71 +15,71 @@ export default async function autoCloseTag(
     editor: TextEditor,
     change: TextDocumentContentChangeEvent
 ) {
-    if (change.text !== ">" && change.text !== " ") {
+    state.outputChannel?.appendLine(JSON.stringify({
+        change,
+        selection: editor.selection
+    }, null, 2));
+    if (change.text !== ">" && !change.text.match(/^\s+$/)) {
         return;
     }
-
+    
     const { document } = editor;
-
-    const position = change.range.end;
-    const offset = document.offsetAt(position);
+    
+    const offset = change.rangeOffset + change.text.length;
+    
+    state.outputChannel?.appendLine(JSON.stringify({
+        offset
+    }, null, 2));
 
     const contentType = await getContentTypeAtCursor(
         document.uri.toString(), offset
     );
+    state.outputChannel?.appendLine(JSON.stringify({
+        contentType
+    }, null, 2));
     if (contentType !== "template") {
         return;
     }
 
+    state.outputChannel?.appendLine("Checking autoclose");
+
     const text = document.getText();
-    if (text.substring(offset - 2, offset) === "/>") {
-        return;
-    }
 
-    const textBeforeCursor = text.substring(0, offset);
-    const openingTagMatch = textBeforeCursor.match(openingTagRegex);
-    if (openingTagMatch == null) {
-        return;
-    }
-    
-    const tagName = openingTagMatch[1];
-    const index = openingTagMatch.index!;
-
-    const textWithoutNewChar = `${textBeforeCursor}${text.substring(offset + 1)}`;
-
-    const {
-        finalState,
-        stateAtOffset
-    } = getTagOpeningState(
-        offset, textWithoutNewChar,
-        tagName, index
-    );
-
+    const result = shouldCloseTag(offset, text);
     state.outputChannel?.appendLine(JSON.stringify({
-        finalState,
-        stateAtOffset
+        result
     }, null, 2));
-
-    if (
-        finalState.scope === undefined ||
-        finalState.tagEndingCharIndex !== undefined
-    ) {
-        return;
-    }
-    if (
-        stateAtOffset != null &&
-        stateAtOffset.attributesCount !== finalState.attributesCount
-    ) {
+    if (!result.shouldClose) {
         return;
     }
 
-    const insertText = (change.text === ">" ?
-        `</${tagName}>` : `></${tagName}>`
+    if (result.voidTag && result.hasOpeningTagClosingChar) {
+        return;
+    }
+
+    if (result.suggestedIndex < offset) {
+        const rangeSubstring = text.substring(
+            result.suggestedIndex, offset
+        );
+        if (!rangeSubstring.match(/^\s*$/)) {
+            return;
+        }
+    }
+
+    const insertText = (!result.voidTag ?
+        (result.hasOpeningTagClosingChar ?
+            `</${result.tagName}>` : `></${result.tagName}>`
+        ) : ">"
     )
-    const newPosition = position.translate(0, 1);
+    const insertPosition = document.positionAt(offset);
+    state.outputChannel?.appendLine(JSON.stringify({
+        insertPosition
+    }, null, 2));
     await editor.edit((editBuilder) => {
-        editBuilder.insert(newPosition, insertText);
+        editBuilder.insert(insertPosition, insertText);
     });
 
-    editor.selection = new Selection(newPosition, newPosition);
+    editor.selection = new Selection(
+        insertPosition, insertPosition
+    );
 }
