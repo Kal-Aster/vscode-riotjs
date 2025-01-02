@@ -77,6 +77,22 @@ export default function shouldCloseTag(
         }
 
         if (charIndex === offset) {
+            if (charIndex === 0) {
+                return { shouldClose: false };
+            }
+            if (text[charIndex - 1] === ">") {
+                if (currentScope !== "text") {
+                    return { shouldClose: false };
+                }
+            } else {
+                if (![
+                    "openingtag",
+                    "attrname"
+                ].includes(currentScope)) {
+                    return { shouldClose: false };
+                }
+            }
+
             tagToCheck = openedTags.at(-1) || null;
         }
 
