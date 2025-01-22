@@ -102,7 +102,23 @@ export default function getDefinitions(
             definition.fileName, program
         );
         if (sourceFile == null) {
-            return null;
+            if (!definition.fileName.endsWith(".riot.d.ts")) {
+                return null;
+            }
+
+            const riotDocument = touchRiotDocument(
+                definition.fileName.replace(/.riot.d.ts$/, ".riot"), null
+            );
+            if (riotDocument == null) {
+                return null;
+            }
+
+            const range = Range.create({ line: 0, character: 0 }, { line: 0, character: 0 });
+
+            return {
+                path: riotDocument.filePath,
+                range, targetSelectionRange: range
+            } as getDefinitions.DefinitionResult;
         }
 
         const rangeStart = sourceFile.getLineAndCharacterOfPosition(
@@ -124,7 +140,6 @@ export default function getDefinitions(
                     rangeStart
                 }, null, 2));
                 if (sourceFile.fileName === filePath) {
-
                     range = Range.create(
                         {
                             line: rangeStart.line + scriptPosition.line,
