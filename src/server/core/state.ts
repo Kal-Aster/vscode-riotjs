@@ -22,7 +22,9 @@ type State = {
     cssLanguageService: CSSLanguageService,
     hasConfigurationCapability: boolean,
     hasWorkspaceFolderCapability: boolean,
-    hasDiagnosticRelatedInformationCapability: boolean
+    hasDiagnosticRelatedInformationCapability: boolean,
+
+    scheduledDocumentsToProcess: Map<string, NodeJS.Timeout>
 };
 
 let sharedState: State | null = null;

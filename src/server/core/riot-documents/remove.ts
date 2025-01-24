@@ -17,7 +17,7 @@ export default function removeRiotDocument(
     connection.console.log(`Requested removal of "${filePath}":\n(already removed in this call:\n${[
         ...riotDocumentsRemovedInThisCall
     ].map(script => `    ${script}`).join("\n")}\n)`);
-    
+
     if (!riotDocuments.has(filePath)) {
         connection.console.error(`Document "${filePath}" not present`);
         return;
@@ -31,12 +31,12 @@ export default function removeRiotDocument(
         connection.console.log(`Removal not possible: ${dependants.length} root files depend on "${filePath}"`);
         return filePath;
     }
-    
+
     const dependencies = [
         ...tsLanguageService.getFullDependenciesOf(filePath),
         ...tsLanguageService.getFullDependenciesOf(`${filePath}`)
     ].filter(script => !riotDocumentsRemovedInThisCall.has(script));
-    
+
     tsLanguageService.removeDocument(`${filePath}.d.ts`);
     tsLanguageService.removeDocument(filePath);
     riotDocuments.delete(filePath);

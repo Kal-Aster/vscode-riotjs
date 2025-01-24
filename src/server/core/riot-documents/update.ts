@@ -7,6 +7,7 @@ export default function updateRiotDocument(
     content: string
 ) {
     const {
+        connection,
         riotDocuments,
         tsLanguageService
     } = getState();
@@ -29,6 +30,7 @@ export default function updateRiotDocument(
         return riotDocument;
     } catch (error) {
         // here there will be some diagnostics
+        connection.console.error(`${error}`);
         riotDocuments.delete(filePath);
         return null;
     }

@@ -42,7 +42,7 @@ function getFSExistingSourceFile(
     return program.getSourceFile(sourceRiotFilePath);
 }
 
-export default function getDefinitions(
+function getDefinitions(
     {
         filePath,
         getText,
@@ -53,6 +53,8 @@ export default function getDefinitions(
         connection,
         tsLanguageService
     } = getState();
+
+    connection.console.log(`Getting definition at ${offset} of ${filePath}`);
 
     if (tsLanguageService == null) {
         connection.console.error("No Language Service");
@@ -182,3 +184,5 @@ export default function getDefinitions(
         return def !== null
     });
 }
+
+export default getDefinitions;

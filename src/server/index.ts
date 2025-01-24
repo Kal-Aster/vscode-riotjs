@@ -56,10 +56,16 @@ setState({
 
     hasConfigurationCapability: false,
     hasWorkspaceFolderCapability: false,
-    hasDiagnosticRelatedInformationCapability: false
+    hasDiagnosticRelatedInformationCapability: false,
+
+    scheduledDocumentsToProcess: new Map()
 });
 
 connection.onInitialize(onInitialize);
+
+connection.onInitialized(() => {
+    connection.console.log("Language Server initialized");
+});
 
 documents.onDidChangeContent(onDidDocumentChangeContent);
 documents.onDidClose(onDidDocumentClose);
