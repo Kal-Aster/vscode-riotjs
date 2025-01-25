@@ -13,7 +13,8 @@ export default async function startDefinitionCaching() {
     const {
         cachingRanges,
         connection,
-        tsLanguageService
+        tsLanguageService,
+        riotDocuments
     } = getState();
 
     while (cachingRanges.length > 0) {
@@ -28,8 +29,14 @@ export default async function startDefinitionCaching() {
             break;
         }
 
-        const { document, range } = cachingRanges[0];
-        const javascript = document.getParserResult().output.javascript;
+        const { filePath, range } = cachingRanges[0];
+        const riotDocument = riotDocuments.get(filePath);
+        if (riotDocument == null) {
+            cachingRanges.splice(0, 1);
+            continue;
+        }
+
+        const javascript = riotDocument.getParserResult().output.javascript;
 
         if (javascript?.text == null) {
             cachingRanges.splice(0, 1);
@@ -58,7 +65,7 @@ export default async function startDefinitionCaching() {
 
             connection.console.log(`Getting definition at ${range.start}`);
             const { tokenKey } = getCachedOrActualDefinition(
-                document,
+                riotDocument,
                 range.start,
                 tsLanguageService
             );

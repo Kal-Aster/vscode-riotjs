@@ -27,7 +27,7 @@ type State = {
     scheduledDocumentsToProcess: Map<string, NodeJS.Timeout>,
 
     cachingRanges: Array<{
-        document: RiotDocument,
+        filePath: string,
         range: {
             start: number,
             end: number

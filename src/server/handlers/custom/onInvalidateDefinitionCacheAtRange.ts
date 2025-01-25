@@ -26,8 +26,7 @@ export default async function onInvalidateDefinitionCacheAtRange({
 }: onInvalidateDefinitionCacheAtRange.Args) {
     const {
         connection,
-        tsLanguageService,
-        cachingRanges
+        tsLanguageService
     } = getState();
 
     const document = getDocument(uri);
@@ -71,7 +70,7 @@ export default async function onInvalidateDefinitionCacheAtRange({
         end: Math.min(javascript.end - javascript.start, range.end - javascript.start)
     };
 
-    shiftCachingRanges(changeRange, newText, riotDocument);
+    shiftCachingRanges(riotDocument.filePath, changeRange, newText);
 
     const invalidatedScope = riotDocument.definitionCache.updateForChange(
         changeRange, newText, sourceFile
@@ -81,7 +80,7 @@ export default async function onInvalidateDefinitionCacheAtRange({
     }
 
     insertCachingRange(
-        riotDocument,
+        riotDocument.filePath,
         {
             start: invalidatedScope.start,
             end: invalidatedScope.end

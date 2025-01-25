@@ -1,8 +1,7 @@
-import RiotDocument from "./riot-documents/RiotDocument";
 import { getState } from "./state";
 
 export default function insertCachingRange(
-    riotDocument: RiotDocument,
+    filePath: string,
     cachingRange: {
         start: number;
         end: number;
@@ -14,7 +13,7 @@ export default function insertCachingRange(
 
     for (let i = cachingRanges.length - 1; i >= 0; i--) {
         const currentCachingRange = cachingRanges[i];
-        if (currentCachingRange.document !== riotDocument) {
+        if (currentCachingRange.filePath !== filePath) {
             continue;
         }
 
@@ -43,14 +42,14 @@ export default function insertCachingRange(
         };
         if (beforeCachingRange.start < beforeCachingRange.end) {
             cachingRanges.splice(i, 0, {
-                document: riotDocument,
+                filePath,
                 range: beforeCachingRange,
                 priority
             });
         }
         if (afterCachingRange.start < afterCachingRange.end) {
             cachingRanges.splice(i + 1, 0, {
-                document: riotDocument,
+                filePath,
                 range: afterCachingRange,
                 priority
             });
@@ -58,7 +57,7 @@ export default function insertCachingRange(
     }
 
     cachingRanges.push({
-        document: riotDocument,
+        filePath,
         range: cachingRange,
         priority: maxPriority
     });

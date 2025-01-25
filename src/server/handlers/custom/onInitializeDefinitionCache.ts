@@ -54,6 +54,8 @@ export default async function onInitializeDefinitionCache({
             return;
         }
 
+        const { filePath } = riotDocument;
+
         const range = {
             start: 0,
             end: javascript.end - javascript.start
@@ -62,7 +64,7 @@ export default async function onInitializeDefinitionCache({
             range, javascript.text?.text || "", sourceFile
         );
         cachingRanges.push({
-            document: riotDocument,
+            filePath,
             range,
             priority: 0
         });

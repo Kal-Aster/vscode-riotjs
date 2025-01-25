@@ -3,12 +3,12 @@ import RiotDocument from "./riot-documents/RiotDocument";
 import { getState } from "./state";
 
 export default function shiftCachingRanges(
+    filePath: string,
     range: {
         start: number;
         end: number;
     },
-    newText: string,
-    riotDocument: RiotDocument
+    newText: string
 ) {
     const { cachingRanges } = getState();
 
@@ -29,7 +29,7 @@ export default function shiftCachingRanges(
         }
     };
     cachingRanges.forEach((cachingRange) => {
-        if (cachingRange.document !== riotDocument) {
+        if (cachingRange.filePath !== filePath) {
             return;
         }
         adjustPosition(cachingRange.range);
