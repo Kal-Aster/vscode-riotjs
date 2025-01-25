@@ -2,15 +2,12 @@ import { TextDocumentChangeEvent } from "vscode-languageserver/node";
 
 import { TextDocument } from "vscode-languageserver-textdocument";
 
-import updateRiotDocument from "../../core/riot-documents/update";
+import GlobalFileCache from "../../../GlobalFileCache";
 
 import uriToPath from "../../utils/document/uriToPath";
 
-export default function onDidDocumentChangeContent(
+export default function onDidDocumentOpen(
     event: TextDocumentChangeEvent<TextDocument>
 ) {
-    updateRiotDocument(
-        uriToPath(event.document.uri),
-        event.document.getText()
-    );
+    GlobalFileCache.removeFile(uriToPath(event.document.uri));
 }

@@ -2,6 +2,7 @@ import { URI } from "vscode-uri";
 import { existsSync, readFileSync } from "fs";
 
 import getDocument from "../../core/getDocument";
+import GlobalFileCache from "../../../GlobalFileCache";
 
 export default function getTextGetterByFilePath(
     filePath: string
@@ -18,9 +19,7 @@ export default function getTextGetterByFilePath(
         if (document != null) {
             return document.getText()
         } else {
-            return readFileSync(
-                filePath, { encoding: "utf-8" }
-            );
+            return GlobalFileCache.getFileContent(filePath);
         }
     }
 }

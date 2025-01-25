@@ -1,6 +1,8 @@
-import * as ts from 'typescript';
-import * as path from 'path';
-import * as fs from 'fs';
+import * as ts from "typescript";
+import * as path from "path";
+import * as fs from "fs";
+
+import GlobalFileCache from "./GlobalFileCache";
 
 namespace TypeScriptLanguageService {
     export type DocumentsHandler = {
@@ -16,18 +18,6 @@ namespace TypeScriptLanguageService {
 
         documentsHandlers?: Array<DocumentsHandler>
     }
-}
-
-const globalFileCache = new Map<string, { mtimeMs: number, content: string }>();
-function getFileContent(path) {
-    const { mtimeMs } = fs.statSync(path);
-    const storedCache = globalFileCache.get(path);
-    if (storedCache != null && mtimeMs === storedCache.mtimeMs) {
-        return storedCache.content;
-    }
-    const content = fs.readFileSync(path, "utf-8");
-    globalFileCache.set(path, { mtimeMs, content });
-    return content;
 }
 
 class TypeScriptLanguageService {
@@ -71,7 +61,7 @@ class TypeScriptLanguageService {
     }
 
     private normalizePath(filePath: string) {
-        return filePath.split(path.sep).join('/');
+        return filePath.split(path.sep).join("/");
     }
 
     private createLanguageService(): ts.LanguageService {
@@ -198,20 +188,18 @@ class TypeScriptLanguageService {
         const normalizedFileName = this.normalizePath(fileName);
         const ext = path.extname(normalizedFileName);
 
-        // Handle known extensions
         switch (ext.toLowerCase()) {
-            case '.ts':
+            case ".ts":
                 return ts.ScriptKind.TS;
-            case '.tsx':
+            case ".tsx":
                 return ts.ScriptKind.TSX;
-            case '.js':
+            case ".js":
                 return ts.ScriptKind.JS;
-            case '.jsx':
+            case ".jsx":
                 return ts.ScriptKind.JSX;
-            case '.json':
+            case ".json":
                 return ts.ScriptKind.JSON;
             default: {
-                // If it's in-memory and has an unknown extension, treat as JS
                 if (this.documents.has(normalizedFileName)) {
                     return ts.ScriptKind.TS;
                 }
@@ -276,7 +264,7 @@ class TypeScriptLanguageService {
         // Check filesystem
         if (fs.existsSync(normalizedFileName)) {
             try {
-                return getFileContent(normalizedFileName);
+                return GlobalFileCache.getFileContent(normalizedFileName);
             } catch {
                 return undefined;
             }
@@ -289,7 +277,7 @@ class TypeScriptLanguageService {
         }
 
         try {
-            return getFileContent(libFileName);
+            return GlobalFileCache.getFileContent(libFileName);
         } catch {
             return undefined;
         }
@@ -303,7 +291,7 @@ class TypeScriptLanguageService {
         }
 
         const baseName = path.basename(normalizedFileName);
-        if (baseName.startsWith('lib.')) {
+        if (baseName.startsWith("lib.")) {
             return null;
         }
 

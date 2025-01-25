@@ -1,4 +1,5 @@
-import { TextDocumentChangeEvent } from "vscode-languageserver";
+import { TextDocumentChangeEvent } from "vscode-languageserver/node";
+
 import { TextDocument } from "vscode-languageserver-textdocument";
 
 import removeRiotDocument from "../../core/riot-documents/remove";

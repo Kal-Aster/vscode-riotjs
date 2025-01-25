@@ -19,6 +19,7 @@ import onInvalidateDefinitionCacheAtRange from "./handlers/custom/onInvalidateDe
 
 import onDidDocumentChangeContent from "./handlers/document/onDidDocumentChangeContent";
 import onDidDocumentClose from "./handlers/document/onDidDocumentClose";
+import onDidDocumentOpen from "./handlers/document/onDidDocumentOpen";
 
 import onInitialize from "./handlers/initialization/onInitialize";
 import onShutdown from "./handlers/initialization/onShutdown";
@@ -72,6 +73,7 @@ connection.onInitialized(() => {
     connection.console.log("Language Server initialized");
 });
 
+documents.onDidOpen(onDidDocumentOpen);
 documents.onDidChangeContent(onDidDocumentChangeContent);
 documents.onDidClose(onDidDocumentClose);
 
