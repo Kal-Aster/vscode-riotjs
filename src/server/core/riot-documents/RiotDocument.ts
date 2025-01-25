@@ -22,7 +22,7 @@ import getParamsTypeStringOfSignature from "../../utils/ts/getParamsTypeStringOf
 import getTypeWithFilteredUndefined from "../../utils/ts/getTypeWithFilteredUndefined";
 import isPropertyAccessibleViaDotSyntax from "../../utils/ts/isPropertyAccessibleViaDotSyntax";
 
-import scheduleDocumentToProcess from "../scheduleDocumentToProcess";
+import DefinitionCache from "../DefinitionCache";
 
 import defaultRiotComponentDeclaration from "./defaultRiotComponentDeclaration";
 import RiotDeclarationDocumentsHandler from "./RiotDeclarationDocumentsHandler";
@@ -43,6 +43,8 @@ export default class RiotDocument {
 
     private compiledDocument: CompilerOutput | null = null;
 
+    readonly definitionCache: DefinitionCache;
+
     private version: number = 0;
 
     constructor(
@@ -51,6 +53,7 @@ export default class RiotDocument {
         tsLanguageService: TypeScriptLanguageService,
         otherRiotDocuments: Map<string, RiotDocument>
     ) {
+        this.definitionCache = new DefinitionCache();
         this.update(content, tsLanguageService, otherRiotDocuments);
     }
 
@@ -108,8 +111,6 @@ export default class RiotDocument {
         }
 
         this.parserResult = parsedContent;
-
-        scheduleDocumentToProcess(this.filePath);
 
         return this;
     }

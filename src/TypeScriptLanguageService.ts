@@ -18,6 +18,18 @@ namespace TypeScriptLanguageService {
     }
 }
 
+const globalFileCache = new Map<string, { mtimeMs: number, content: string }>();
+function getFileContent(path) {
+    const { mtimeMs } = fs.statSync(path);
+    const storedCache = globalFileCache.get(path);
+    if (storedCache != null && mtimeMs === storedCache.mtimeMs) {
+        return storedCache.content;
+    }
+    const content = fs.readFileSync(path, "utf-8");
+    globalFileCache.set(path, { mtimeMs, content });
+    return content;
+}
+
 class TypeScriptLanguageService {
     private languageService: ts.LanguageService;
     private program: ts.Program | null = null;
@@ -264,7 +276,7 @@ class TypeScriptLanguageService {
         // Check filesystem
         if (fs.existsSync(normalizedFileName)) {
             try {
-                return fs.readFileSync(normalizedFileName, 'utf-8');
+                return getFileContent(normalizedFileName);
             } catch {
                 return undefined;
             }
@@ -277,7 +289,7 @@ class TypeScriptLanguageService {
         }
 
         try {
-            return fs.readFileSync(libFileName, 'utf-8');
+            return getFileContent(libFileName);
         } catch {
             return undefined;
         }

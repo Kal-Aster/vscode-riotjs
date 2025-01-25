@@ -14,6 +14,8 @@ import RiotDeclarationDocumentsHandler from "./core/riot-documents/RiotDeclarati
 import { setState } from "./core/state";
 
 import onGetContentTypeAtCursor from "./handlers/custom/onGetContentTypeAtCursor";
+import onInitializeDefinitionCache from "./handlers/custom/onInitializeDefinitionCache";
+import onInvalidateDefinitionCacheAtRange from "./handlers/custom/onInvalidateDefinitionCacheAtRange";
 
 import onDidDocumentChangeContent from "./handlers/document/onDidDocumentChangeContent";
 import onDidDocumentClose from "./handlers/document/onDidDocumentClose";
@@ -37,6 +39,7 @@ import onDefinition from "./handlers/lsp/onDefinition";
 import onHover from "./handlers/lsp/onHover";
 
 import registerCustomHandlers from "./utils/registerCustomHandlers";
+import onScheduleDocumentToProcess from "./handlers/custom/onScheduleDocumentToProcess";
 
 const connection = createConnection(ProposedFeatures.all);
 const documents = new TextDocuments(TextDocument);
@@ -58,7 +61,9 @@ setState({
     hasWorkspaceFolderCapability: false,
     hasDiagnosticRelatedInformationCapability: false,
 
-    scheduledDocumentsToProcess: new Map()
+    scheduledDocumentsToProcess: new Map(),
+
+    cachingRanges: []
 });
 
 connection.onInitialize(onInitialize);
@@ -82,6 +87,9 @@ registerCustomHandlers(
     connection,
     [
         onGetContentTypeAtCursor,
+        onInitializeDefinitionCache,
+        onInvalidateDefinitionCacheAtRange,
+        onScheduleDocumentToProcess,
         onLogCompiledComponent,
         onLogContentTypeAtCursor,
         onLogDeclaration,

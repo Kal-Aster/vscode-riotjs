@@ -6,7 +6,7 @@ export default function registerCustomHandlers(
 ) {
     customHandlers.forEach(customHandler => {
         const route = customHandler.name.replace(
-            /on(\w)/, (_, char) => char.toLowerCase()
+            /^on(\w)/, (_, char) => char.toLowerCase()
         );
         connection.onRequest(
             `custom/${route}`, customHandler

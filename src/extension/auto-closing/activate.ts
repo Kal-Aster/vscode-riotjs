@@ -2,6 +2,7 @@ import {
     workspace,
     ExtensionContext
 } from "vscode";
+
 import onDidChangeTextDocument from "./onDidChangeTextDocument";
 
 export default function activateAutoClosing(context: ExtensionContext) {

@@ -24,7 +24,16 @@ type State = {
     hasWorkspaceFolderCapability: boolean,
     hasDiagnosticRelatedInformationCapability: boolean,
 
-    scheduledDocumentsToProcess: Map<string, NodeJS.Timeout>
+    scheduledDocumentsToProcess: Map<string, NodeJS.Timeout>,
+
+    cachingRanges: Array<{
+        document: RiotDocument,
+        range: {
+            start: number,
+            end: number
+        },
+        priority: number
+    }>
 };
 
 let sharedState: State | null = null;

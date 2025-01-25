@@ -3,9 +3,14 @@ import path from "path";
 import { ExtensionContext, window } from "vscode";
 import { LanguageClient, TransportKind } from "vscode-languageclient/node";
 
-import activateAutoClosing from "./activateAutoClosing";
 import registerCommands from "./registerCommands";
 import state from "./state";
+
+import activateAutoClosing from "./auto-closing/activate";
+
+import activateDefinitionCache from "./definition-cache/activateDefinitionCache";
+
+import activateDocumentAutoProcessing from "./document-auto-processing/activateDocumentAutoProcessing";
 
 export default async function activate(
     context: ExtensionContext
@@ -59,7 +64,12 @@ export default async function activate(
             await state.riotClient.start();
             outputChannel.appendLine("Client started successfully");
 
+            activateDocumentAutoProcessing(context);
+
+            activateDefinitionCache(context);
+
             activateAutoClosing(context);
+
             registerCommands(context);
         } else {
             outputChannel.appendLine("Riot Extension client already exists");

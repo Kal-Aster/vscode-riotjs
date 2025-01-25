@@ -2,7 +2,8 @@ import {
     Definition,
     DefinitionLink,
     DefinitionParams,
-    Location
+    Location,
+    LocationLink
 } from "vscode-languageserver/node";
 
 import getDocument from "../../core/getDocument";
@@ -22,8 +23,7 @@ export default async function onDefinition(
         position
     }: DefinitionParams
 ): Promise<(
-    Definition | DefinitionLink[] |
-    undefined | null
+    Definition | Array<DefinitionLink> | undefined | null
 )> {
     const document = getDocument(textDocument.uri);
     if (!document) {
@@ -56,7 +56,7 @@ export default async function onDefinition(
         targetSelectionRange, originSelectionRange
     }) => ({
         uri: pathToUri(path),
-        range,
+        targetRange: range,
         targetSelectionRange,
         originSelectionRange
     }));
@@ -64,14 +64,19 @@ export default async function onDefinition(
         return null;
     }
 
-    if (definitions.some(def => def.targetSelectionRange)) {
-        return definitions.map(def => ({
-            targetUri: def.uri,
-            targetRange: def.range,
-            targetSelectionRange: def.targetSelectionRange!,
-            originSelectionRange: def.originSelectionRange
-        }));
+    const definitionLinks = definitions.filter(def => {
+        return def.targetSelectionRange != null;
+    }).map(def => {
+        return LocationLink.create(
+            def.uri,
+            def.targetRange,
+            def.targetSelectionRange!,
+            def.originSelectionRange
+        );
+    });
+    if (definitionLinks.length > 0) {
+        return definitionLinks;
     }
 
-    return definitions.map(def => Location.create(def.uri, def.range));
+    return Location.create(definitions[0].uri, definitions[0].targetRange);
 }

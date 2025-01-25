@@ -4,10 +4,10 @@ import {
     Selection
 } from "vscode";
 
-import getContentTypeAtCursor from "./getContentTypeAtCursor";
-import state from "./state";
+import getContentTypeAtCursor from "../getContentTypeAtCursor";
+import state from "../state";
 
-import shouldCloseTag from "./utils/shouldCloseTag";
+import shouldCloseTag from "../utils/shouldCloseTag";
 
 const openingTagRegex = /<([\w-]+)(?:\s+[^<]*)*$/;
 
