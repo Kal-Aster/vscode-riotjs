@@ -149,7 +149,7 @@ export default class RiotDocument {
             return this.compiledDocument;
         }
 
-        const compiledComponent = compile(this.getContent());
+        const compiledComponent = compile(this.getParserResult() as any);
         this.compiledDocument = compiledComponent;
         return compiledComponent;
     }
