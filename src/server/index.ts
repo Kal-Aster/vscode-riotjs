@@ -14,7 +14,6 @@ import RiotDeclarationDocumentsHandler from "./core/riot-documents/RiotDeclarati
 import { setState } from "./core/state";
 
 import onGetContentTypeAtCursor from "./handlers/custom/onGetContentTypeAtCursor";
-import onInitializeDefinitionCache from "./handlers/custom/onInitializeDefinitionCache";
 import onInvalidateDefinitionCacheAtRange from "./handlers/custom/onInvalidateDefinitionCacheAtRange";
 
 import onDidDocumentChangeContent from "./handlers/document/onDidDocumentChangeContent";
@@ -89,7 +88,6 @@ registerCustomHandlers(
     connection,
     [
         onGetContentTypeAtCursor,
-        onInitializeDefinitionCache,
         onInvalidateDefinitionCacheAtRange,
         onScheduleDocumentToProcess,
         onLogCompiledComponent,

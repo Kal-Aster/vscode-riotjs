@@ -16,11 +16,11 @@ export default function onDidDocumentClose(
         cachingRanges
     } = getState();
 
-    connection.console.log(
-        `Document closed: "${event.document.uri}"`
-    );
+    const { uri } = event.document;
 
-    const filePath = uriToPath(event.document.uri);
+    connection.console.log(`Document closed: ${uri}`);
+
+    const filePath = uriToPath(uri);
 
     for (let i = cachingRanges.length - 1; i >= 0; i--) {
         const cachingRange = cachingRanges[i];
