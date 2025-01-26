@@ -22,22 +22,15 @@ export default async function onInitializeDefinitionCache({
         cachingRanges
     } = getState();
 
-    const document = getDocument(uri);
-    if (document == null) {
-        connection.console.error(`Document "${uri}" not found`);
-        return;
-    }
-
-    const riotDocument = touchRiotDocument(
-        uriToPath(document.uri),
-        () => document.getText()
-    );
-    if (riotDocument == null) {
-        connection.console.error("Couldn't parse riot component");
-        return;
-    }
-
     setImmediate(() => {
+        const riotDocument = touchRiotDocument(
+            uriToPath(uri), null
+        );
+        if (riotDocument == null) {
+            connection.console.error("Riot document not available");
+            return;
+        }
+
         const { javascript } = riotDocument.getParserResult().output;
 
         connection.console.log(`Has javascript? ${javascript ? "Yes" : "No"}`);
@@ -63,10 +56,16 @@ export default async function onInitializeDefinitionCache({
         riotDocument.definitionCache.updateForChange(
             range, javascript.text?.text || "", sourceFile
         );
+        let maxPriority = 0;
+        cachingRanges.forEach(({ priority }) => {
+            if (priority > maxPriority) {
+                maxPriority = priority;
+            }
+        })
         cachingRanges.push({
             filePath,
             range,
-            priority: 0
+            priority: maxPriority + 1
         });
         startDefinitionCaching();
     });
