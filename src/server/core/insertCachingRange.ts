@@ -19,8 +19,8 @@ export default function insertCachingRange(
 
         const { priority } = currentCachingRange;
 
-        if (priority >= maxPriority) {
-            maxPriority++;
+        if (priority > maxPriority) {
+            maxPriority = priority;
         }
 
         if (
@@ -59,6 +59,6 @@ export default function insertCachingRange(
     cachingRanges.push({
         filePath,
         range: cachingRange,
-        priority: maxPriority
+        priority: maxPriority + 1
     });
 }
