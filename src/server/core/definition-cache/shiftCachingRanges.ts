@@ -1,6 +1,4 @@
-import RiotDocument from "./riot-documents/RiotDocument";
-
-import { getState } from "./state";
+import { getState } from "../state";
 
 export default function shiftCachingRanges(
     filePath: string,

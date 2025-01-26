@@ -1,7 +1,6 @@
-import ts from "typescript";
-import getCachedOrActualDefinition from "../utils/definitions/getCachedOrActualDefinition";
+import getCachedOrActualDefinition from "../../utils/definitions/getCachedOrActualDefinition";
 
-import { getState } from "./state";
+import { getState } from "../state";
 
 let isRunning = false;
 export default async function startDefinitionCaching() {

@@ -1,6 +1,6 @@
 import ts from "typescript";
 
-import OffsetDefinitionResult from "../utils/definitions/OffsetDefinitionResult";
+import OffsetDefinitionResult from "../../utils/definitions/OffsetDefinitionResult";
 
 type TokenKey = {
     start: number; 

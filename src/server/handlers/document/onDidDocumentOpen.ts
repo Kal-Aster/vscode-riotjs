@@ -4,7 +4,7 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 
 import GlobalFileCache from "../../../GlobalFileCache";
 
-import initializeDefinitionCache from "../../core/initializeDefinitionCache";
+import initializeDefinitionCache from "../../core/definition-cache/initializeDefinitionCache";
 
 import { getState } from "../../core/state";
 

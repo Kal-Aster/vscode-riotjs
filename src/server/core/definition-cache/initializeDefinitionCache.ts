@@ -1,8 +1,8 @@
-import touchRiotDocument from "./riot-documents/touch";
+import touchRiotDocument from "../riot-documents/touch";
+
+import { getState } from "../state";
 
 import startDefinitionCaching from "./startDefinitionCaching";
-
-import { getState } from "./state";
 
 export default function initializeDefinitionCache(filePath: string) {
     const {

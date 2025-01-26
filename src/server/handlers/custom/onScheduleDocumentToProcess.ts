@@ -1,7 +1,6 @@
 import getDocument from "../../core/getDocument";
 
 import touchRiotDocument from "../../core/riot-documents/touch";
-import startDefinitionCaching from "../../core/startDefinitionCaching";
 
 import { getState } from "../../core/state";
 

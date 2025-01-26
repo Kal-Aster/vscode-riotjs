@@ -22,7 +22,7 @@ import getParamsTypeStringOfSignature from "../../utils/ts/getParamsTypeStringOf
 import getTypeWithFilteredUndefined from "../../utils/ts/getTypeWithFilteredUndefined";
 import isPropertyAccessibleViaDotSyntax from "../../utils/ts/isPropertyAccessibleViaDotSyntax";
 
-import DefinitionCache from "../DefinitionCache";
+import DefinitionCache from "../definition-cache/DefinitionCache";
 
 import defaultRiotComponentDeclaration from "./defaultRiotComponentDeclaration";
 import RiotDeclarationDocumentsHandler from "./RiotDeclarationDocumentsHandler";

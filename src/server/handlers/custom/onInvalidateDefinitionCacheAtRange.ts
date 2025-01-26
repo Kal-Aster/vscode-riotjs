@@ -1,10 +1,10 @@
 import getDocument from "../../core/getDocument";
-import insertCachingRange from "../../core/insertCachingRange";
+
+import insertCachingRange from "../../core/definition-cache/insertCachingRange";
+import shiftCachingRanges from "../../core/definition-cache/shiftCachingRanges";
+import startDefinitionCaching from "../../core/definition-cache/startDefinitionCaching";
 
 import touchRiotDocument from "../../core/riot-documents/touch";
-import shiftCachingRanges from "../../core/shiftCachingRanges";
-
-import startDefinitionCaching from "../../core/startDefinitionCaching";
 
 import { getState } from "../../core/state";
 
