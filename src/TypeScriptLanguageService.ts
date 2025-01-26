@@ -558,7 +558,20 @@ class TypeScriptLanguageService {
     }
 
     getTypeDefinitionAtPosition(fileName: string, position: number) {
-        return this.languageService?.getTypeDefinitionAtPosition(fileName, position);
+        const definitionArray = this.languageService?.getTypeDefinitionAtPosition(fileName, position);
+
+        return definitionArray?.filter(definition => {
+            const foundDocumentHandler = this.documentsHandlers.find(({
+                extension
+            }) => definition.fileName.endsWith(extension));
+            if (foundDocumentHandler == null) {
+                return true;;
+            }
+
+            return foundDocumentHandler.handleDefinition(
+                this, definition
+            );
+        });
     }
 
     public dispose() {
