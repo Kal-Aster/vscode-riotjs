@@ -19,8 +19,6 @@ export default async function startDefinitionCaching() {
     while (cachingRanges.length > 0) {
         await new Promise(resolve => setTimeout(resolve, 20));
 
-        connection.console.log("Caching definitions");
-
         cachingRanges.sort(({ priority: a }, { priority: b }) => {
             return b - a;
         });
@@ -62,7 +60,6 @@ export default async function startDefinitionCaching() {
                 continue;
             } while (true);
 
-            connection.console.log(`Getting definition at ${range.start}`);
             const { tokenKey } = getCachedOrActualDefinition(
                 riotDocument,
                 range.start,
@@ -74,7 +71,6 @@ export default async function startDefinitionCaching() {
                 range.start = tokenKey.end;
             }
             lastTokenEnd = tokenKey.end;
-            connection.console.log(`Moving cursor at ${range.start}`);
         }
 
         if (
