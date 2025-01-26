@@ -13,7 +13,6 @@ export default function removeRiotDocument(
         tsLanguageService
     } = getState();
 
-    
     connection.console.log(`Requested removal of "${filePath}":\n(already removed in this call:\n${[
         ...riotDocumentsRemovedInThisCall
     ].map(script => `    ${script}`).join("\n")}\n)`);
@@ -25,7 +24,7 @@ export default function removeRiotDocument(
 
     const dependants = [
         ...tsLanguageService.getRootFilesDependantOf(filePath),
-        ...tsLanguageService.getRootFilesDependantOf(`${filePath}.d.ts`)
+        ...tsLanguageService.getRootFilesDependantOf(`${filePath}.ts`)
     ].filter(script => !riotDocumentsRemovedInThisCall.has(script));
     if (dependants.length > 0) {
         connection.console.log(`Removal not possible: ${dependants.length} root files depend on "${filePath}"`);
@@ -37,15 +36,15 @@ export default function removeRiotDocument(
         ...tsLanguageService.getFullDependenciesOf(`${filePath}`)
     ].filter(script => !riotDocumentsRemovedInThisCall.has(script));
 
-    tsLanguageService.removeDocument(`${filePath}.d.ts`);
+    tsLanguageService.removeDocument(`${filePath}.ts`);
     tsLanguageService.removeDocument(filePath);
     riotDocuments.delete(filePath);
 
-    riotDocumentsRemovedInThisCall.add(`${filePath}.d.ts`);
+    riotDocumentsRemovedInThisCall.add(`${filePath}.ts`);
     riotDocumentsRemovedInThisCall.add(filePath);
 
     dependencies.forEach(dependency => {
-        dependency = dependency.replace(/\.riot\.d\.ts$/, ".riot");
+        dependency = dependency.replace(/\.riot\.ts$/, ".riot");
         if (
             !dependency.match(/\.riot$/) ||
             riotDocumentsRemovedInThisCall.has(dependency)

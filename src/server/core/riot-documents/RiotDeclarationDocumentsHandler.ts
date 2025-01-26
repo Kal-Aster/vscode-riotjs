@@ -3,18 +3,21 @@ import { URI } from "vscode-uri";
 
 import TypeScriptLanguageService from "../../../TypeScriptLanguageService";
 
-import getComponentDeclaration from "../../features/riot/getComponentDeclaration";
-
 import getTextGetterByFilePath from "../../utils/riot/getTextGetterByFilePath";
 
 import getDocument from "../getDocument";
 
+import touchRiotDocument from "./touch";
+import getSourceOffset from "../../utils/mappings/getSourceOffset";
+
+const extraExtensionRegex = /\.ts$/;
+
 const RiotDeclarationDocumentsHandler: (
     TypeScriptLanguageService.DocumentsHandler
 ) = {
-    extension: ".riot.d.ts",
-    doesFileExists(filePath) {
-        const baseFilePath = filePath.replace(/\.d\.ts$/, "");
+    extension: ".riot.ts",
+    doesFileExists(tsLanguageService, filePath) {
+        const baseFilePath = filePath.replace(extraExtensionRegex, "");
         
         const baseFileURI = URI.file(baseFilePath).toString();
         
@@ -23,24 +26,60 @@ const RiotDeclarationDocumentsHandler: (
             existsSync(baseFilePath)
         );
     },
-    getDocumentContent(filePath) {
-        const baseFilePath = filePath.replace(/\.d\.ts$/, "");
-        
-        const getText = getTextGetterByFilePath(baseFilePath);
+    getDocumentContent(tsLanguageService, filePath) {
+        filePath = filePath.replace(extraExtensionRegex, "");
+
+        const getText = getTextGetterByFilePath(filePath);
         if (getText == null) {
             return undefined;
         }
 
-        const declaration = getComponentDeclaration(
-            baseFilePath, getText, "EXTERNAL"
+        const riotDocument = touchRiotDocument(filePath, getText);
+        if (riotDocument == null) {
+            return undefined;
+        }
+
+        const { code } = riotDocument.getCompiled();
+        return code;
+    },
+    getDocumentVersion(tsLanguageService, filePath) {
+        const baseFilePath = filePath.replace(extraExtensionRegex, "");
+        return tsLanguageService.getScriptVersion(baseFilePath);
+    },
+    handleDefinition(tsLanguageService, definition) {
+        const filePath = definition.fileName.replace(extraExtensionRegex, "");
+
+        const getText = getTextGetterByFilePath(filePath);
+        if (getText == null) {
+            return true;
+        }
+
+        const riotDocument = touchRiotDocument(filePath, getText);
+        if (riotDocument == null) {
+            return true;
+        }
+
+        const { code, map } = riotDocument.getCompiled();
+        const startOffset = getSourceOffset(
+            map, code,
+            [riotDocument.getText()],
+            definition.textSpan.start
         );
-        return declaration ?? undefined;
+        // const endOffset = getSourceOffset(
+        //     map, code,
+        //     [riotDocument.getText()],
+        //     definition.textSpan.start + definition.textSpan.length
+        // );
+
+        definition.fileName = filePath;
+        definition.textSpan.start = startOffset;
+        definition.textSpan.length = 0;
+
+        return true;
     },
-    getDocumentVersion(filePath) {
-        const baseFilePath = filePath.replace(/\.d\.ts$/, "");
-        const version = this.getScriptVersion(baseFilePath);
-        return version;
-    },
+    handleCompletionEntry(tsLanguageService, completionEntry) {
+        return false;
+    }
 };
 
 export default RiotDeclarationDocumentsHandler;

@@ -6,10 +6,12 @@ import GlobalFileCache from "./GlobalFileCache";
 
 namespace TypeScriptLanguageService {
     export type DocumentsHandler = {
-        extension: string,
-        doesFileExists: (this: TypeScriptLanguageService, filePath: string) => boolean,
-        getDocumentContent: (this: TypeScriptLanguageService, filePath: string) => string | undefined,
-        getDocumentVersion: (this: TypeScriptLanguageService, filePath: string) => any
+        extension: string;
+        doesFileExists(tsLanguageService: TypeScriptLanguageService, filePath: string): boolean;
+        getDocumentContent(tsLanguageService: TypeScriptLanguageService, filePath: string): string | undefined;
+        getDocumentVersion(tsLanguageService: TypeScriptLanguageService, filePath: string): any;
+        handleDefinition(tsLanguageService: TypeScriptLanguageService, definition: ts.DefinitionInfo): boolean;
+        handleCompletionEntry(tsLanguageService: TypeScriptLanguageService, completionEntry: ts.CompletionEntry): boolean;
     }
 
     export type ServiceOptions = {
@@ -142,6 +144,16 @@ class TypeScriptLanguageService {
                                 return this.readFileContent(fileName)
                             },
                         }
+                        /**
+                         * , cache:
+                         * 
+                         * if (cache && !cache.isReadonly) {
+                         *     cache.getOrCreateCacheForDirectory(containingDirectory, redirectedReference).set(moduleName, resolutionMode, result);
+                         *     if (!isExternalModuleNameRelative(moduleName)) {
+                         *         cache.getOrCreateCacheForNonRelativeName(moduleName, resolutionMode, redirectedReference).set(containingDirectory, result);
+                         *     }
+                         * }
+                         */
                     );
                     
                     return result.resolvedModule;
@@ -163,7 +175,7 @@ class TypeScriptLanguageService {
             extension
         }) => normalizedFileName.endsWith(extension));
         if (foundDocumentHandler != null) {
-            const version = foundDocumentHandler.getDocumentVersion.call(this, normalizedFileName);
+            const version = foundDocumentHandler.getDocumentVersion(this, normalizedFileName);
             if (version != null) {
                 return version;
             }
@@ -225,7 +237,7 @@ class TypeScriptLanguageService {
             extension
         }) => normalizedFileName.endsWith(extension));
         if (foundDocumentHandler != null) {
-            if (foundDocumentHandler.doesFileExists.call(this, normalizedFileName)) {
+            if (foundDocumentHandler.doesFileExists(this, normalizedFileName)) {
                 return true;
             }
         }
@@ -249,7 +261,7 @@ class TypeScriptLanguageService {
             extension
         }) => normalizedFileName.endsWith(extension));
         if (foundDocumentHandler != null) {
-            const content = foundDocumentHandler.getDocumentContent.call(this, normalizedFileName);
+            const content = foundDocumentHandler.getDocumentContent(this, normalizedFileName);
             if (content != null) {
                 return content;
             }
@@ -430,7 +442,7 @@ class TypeScriptLanguageService {
         position: number
     ) {
         const normalizedFileName = this.normalizePath(fileName);
-        const completionInfo = this.languageService.getCompletionsAtPosition(
+        const completions = this.languageService.getCompletionsAtPosition(
             normalizedFileName,
             position,
             {
@@ -453,7 +465,37 @@ class TypeScriptLanguageService {
             }
         );
 
-        return completionInfo;
+        if (completions != null) {
+            for (
+                let i = completions.entries.length - 1;
+                i >= 0; i--
+            ) {
+                const completionEntry = completions[i];
+
+                const fileName = completionEntry.data?.fileName;
+                if (fileName == null) {
+                    continue;
+                }
+
+                const foundDocumentHandler = this.documentsHandlers.find(({
+                    extension
+                }) => fileName.endsWith(extension));
+                if (foundDocumentHandler == null) {
+                    continue;
+                }
+
+                const shouldKeep = foundDocumentHandler.handleCompletionEntry(
+                    this, completionEntry
+                );
+                if (shouldKeep) {
+                    continue;
+                }
+
+                completions.entries.splice(i, 1);
+            }
+        }
+
+        return completions;
     }
 
     getCompletionEntryDetails(
@@ -499,7 +541,20 @@ class TypeScriptLanguageService {
     }
 
     getDefinitionAtPosition(fileName: string, position: number) {
-        return this.languageService?.getDefinitionAtPosition(fileName, position);
+        const definitionArray = this.languageService?.getDefinitionAtPosition(fileName, position);
+
+        return definitionArray?.filter(definition => {
+            const foundDocumentHandler = this.documentsHandlers.find(({
+                extension
+            }) => definition.fileName.endsWith(extension));
+            if (foundDocumentHandler == null) {
+                return true;;
+            }
+
+            return foundDocumentHandler.handleDefinition(
+                this, definition
+            );
+        });
     }
 
     getTypeDefinitionAtPosition(fileName: string, position: number) {
