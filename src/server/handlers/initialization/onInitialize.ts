@@ -18,10 +18,6 @@ export default async function onInitialize(
     const state = getState();
     state.connection.console.log("Initializing Language Server");
 
-    await new Promise(resolve => setTimeout(resolve, 3000));
-
-    state.connection.console.log("Awaited 3 seconds");
-
     // const rootPath = uriToPath(params.workspaceFolders != null ?
     //     params.workspaceFolders[0]!.uri :
     //     params.rootUri!
