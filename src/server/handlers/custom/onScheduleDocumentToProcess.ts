@@ -46,13 +46,13 @@ export default async function onScheduleDocumentToProcess({
 
     scheduledDocumentsToProcess.set(filePath, setTimeout(() => {
         scheduledDocumentsToProcess.delete(filePath);
-        const riotDocument = riotDocuments.get(filePath);
-        if (riotDocument == null) {
-            return;
-        }
+        // const riotDocument = riotDocuments.get(filePath);
+        // if (riotDocument == null) {
+        //     return;
+        // }
 
-        connection.console.log(`Processing document ${filePath}`);
-        riotDocument.getExternalDeclaration();
-        connection.console.log(`Document ${filePath} processed`);
+        // connection.console.log(`Processing document ${filePath}`);
+        // riotDocument.getExternalDeclaration();
+        // connection.console.log(`Document ${filePath} processed`);
     }, 3000));
 }
