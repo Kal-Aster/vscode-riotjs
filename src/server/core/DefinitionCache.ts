@@ -126,18 +126,24 @@ function shouldCreateNewScope(node: ts.Node): boolean {
     return false;
 }
 
-function getFirstCommonParent(scopeA, scopeB) {
+function getFirstCommonParent(
+    scopeA: ScopeInfo,
+    scopeB: ScopeInfo
+) {
     if (scopeA === scopeB) {
         return scopeA;
     }
 
     do {
-        scopeA = scopeA.parent;
-        scopeB = scopeB.parent;
-
-        if (scopeA == null || scopeB == null) {
+        if (
+            scopeA.parent == null ||
+            scopeB.parent == null
+        ) {
             return null;
         }
+
+        scopeA = scopeA.parent;
+        scopeB = scopeB.parent;
 
         if (scopeA === scopeB) {
             return scopeA;
@@ -313,13 +319,20 @@ export default class DefinitionCache {
 
         const startScope = this.findContainingScope(range.start);
         const endScope = this.findContainingScope(range.end);
-
+        
+        if (startScope == null) {
+            return endScope;
+        }
+        if (endScope == null) {
+            return startScope;
+        }
         return getFirstCommonParent(startScope, endScope);
     }
 
-    private findContainingScope(offset: number): ScopeInfo {
+    private findContainingScope(offset: number): ScopeInfo | null {
         if (this.rootScope == null) {
-            throw new Error('Cache not initialized');
+            // throw new Error('Cache not initialized');
+            return null;
         }
 
         const findInScope = (scope: ScopeInfo): ScopeInfo | undefined => {
@@ -337,7 +350,8 @@ export default class DefinitionCache {
 
         const found = findInScope(this.rootScope);
         if (!found) {
-            throw new Error(`No scope found for offset ${offset}`);
+            // throw new Error(`No scope found for offset ${offset}`);
+            return null;
         }
         return found;
     }
