@@ -11,8 +11,24 @@ import uriToPath from "../../utils/document/uriToPath";
 export default function onDidDocumentClose(
     event: TextDocumentChangeEvent<TextDocument>
 ) {
-    getState().connection.console.log(
+    const {
+        connection,
+        cachingRanges
+    } = getState();
+
+    connection.console.log(
         `Document closed: "${event.document.uri}"`
     );
-    removeRiotDocument(uriToPath(event.document.uri));
+
+    const filePath = uriToPath(event.document.uri);
+
+    for (let i = cachingRanges.length - 1; i >= 0; i--) {
+        const cachingRange = cachingRanges[i];
+        if (cachingRange.filePath !== filePath) {
+            continue;
+        }
+
+        cachingRanges.splice(i, 1);
+    }
+    removeRiotDocument(filePath);
 }
