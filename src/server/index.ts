@@ -15,6 +15,7 @@ import { setState } from "./core/state";
 
 import onGetContentTypeAtCursor from "./handlers/custom/onGetContentTypeAtCursor";
 import onInvalidateDefinitionCacheAtRange from "./handlers/custom/onInvalidateDefinitionCacheAtRange";
+import onScheduleDocumentToProcess from "./handlers/custom/onScheduleDocumentToProcess";
 
 import onDidDocumentChangeContent from "./handlers/document/onDidDocumentChangeContent";
 import onDidDocumentClose from "./handlers/document/onDidDocumentClose";
@@ -37,9 +38,9 @@ import onCompletion from "./handlers/lsp/onCompletion";
 import onCompletionResolve from "./handlers/lsp/onCompletionResolve";
 import onDefinition from "./handlers/lsp/onDefinition";
 import onHover from "./handlers/lsp/onHover";
+import onReferences from "./handlers/lsp/onReferences";
 
 import registerCustomHandlers from "./utils/registerCustomHandlers";
-import onScheduleDocumentToProcess from "./handlers/custom/onScheduleDocumentToProcess";
 
 const connection = createConnection(ProposedFeatures.all);
 const documents = new TextDocuments(TextDocument);
@@ -83,6 +84,8 @@ connection.onCompletionResolve(onCompletionResolve);
 connection.onHover(onHover);
 
 connection.onDefinition(onDefinition);
+
+connection.onReferences(onReferences);
 
 registerCustomHandlers(
     connection,

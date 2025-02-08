@@ -53,7 +53,8 @@ export default async function onInitialize(
                 triggerCharacters: ["<", " ", ":", "{", "."],
             },
             hoverProvider: true,
-            definitionProvider: true
+            definitionProvider: true,
+            referencesProvider: true
         },
     };
 }

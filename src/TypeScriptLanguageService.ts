@@ -10,7 +10,8 @@ namespace TypeScriptLanguageService {
         doesFileExists(tsLanguageService: TypeScriptLanguageService, filePath: string): boolean;
         getDocumentContent(tsLanguageService: TypeScriptLanguageService, filePath: string): string | undefined;
         getDocumentVersion(tsLanguageService: TypeScriptLanguageService, filePath: string): any;
-        handleDefinition(tsLanguageService: TypeScriptLanguageService, definition: ts.DefinitionInfo): boolean;
+        handleDefinitionInfo(tsLanguageService: TypeScriptLanguageService, definition: ts.DefinitionInfo): boolean;
+        handleReferenceEntry(tsLanguageService: TypeScriptLanguageService, reference: ts.ReferenceEntry): boolean;
         handleCompletionEntry(tsLanguageService: TypeScriptLanguageService, completionEntry: ts.CompletionEntry): boolean;
     }
 
@@ -551,8 +552,25 @@ class TypeScriptLanguageService {
                 return true;;
             }
 
-            return foundDocumentHandler.handleDefinition(
+            return foundDocumentHandler.handleDefinitionInfo(
                 this, definition
+            );
+        });
+    }
+
+    getReferencesAtPosition(fileName: string, position: number) {
+        const referencesArray = this.languageService?.getReferencesAtPosition(fileName, position);
+
+        return referencesArray?.filter(reference => {
+            const foundDocumentHandler = this.documentsHandlers.find(({
+                extension
+            }) => reference.fileName.endsWith(extension));
+            if (foundDocumentHandler == null) {
+                return true;
+            }
+
+            return foundDocumentHandler.handleReferenceEntry(
+                this, reference
             );
         });
     }
@@ -568,7 +586,7 @@ class TypeScriptLanguageService {
                 return true;;
             }
 
-            return foundDocumentHandler.handleDefinition(
+            return foundDocumentHandler.handleDefinitionInfo(
                 this, definition
             );
         });

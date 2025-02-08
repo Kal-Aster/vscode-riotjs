@@ -3,7 +3,8 @@ import ts from "typescript";
 import RiotDocument from "../../core/riot-documents/RiotDocument";
 import touchRiotDocument from "../../core/riot-documents/touch";
 
-import getFSExistingSourceFile from "./getFSExistingSourceFile";
+import getFSExistingSourceFile from "../getFSExistingSourceFile";
+
 import OffsetDefinitionResult from "./OffsetDefinitionResult";
 
 function addScriptOffsetToRange(

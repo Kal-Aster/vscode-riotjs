@@ -46,7 +46,7 @@ const RiotDeclarationDocumentsHandler: (
         const baseFilePath = filePath.replace(extraExtensionRegex, "");
         return tsLanguageService.getScriptVersion(baseFilePath);
     },
-    handleDefinition(tsLanguageService, definition) {
+    handleDefinitionInfo(tsLanguageService, definition) {
         const filePath = definition.fileName.replace(extraExtensionRegex, "");
 
         const getText = getTextGetterByFilePath(filePath);
@@ -74,6 +74,37 @@ const RiotDeclarationDocumentsHandler: (
         definition.fileName = filePath;
         definition.textSpan.start = startOffset;
         definition.textSpan.length = 0;
+
+        return true;
+    },
+    handleReferenceEntry(tsLanguageService, reference) {
+        const filePath = reference.fileName.replace(extraExtensionRegex, "");
+
+        const getText = getTextGetterByFilePath(filePath);
+        if (getText == null) {
+            return true;
+        }
+
+        const riotDocument = touchRiotDocument(filePath, getText);
+        if (riotDocument == null) {
+            return true;
+        }
+
+        const { code, map } = riotDocument.getCompiled();
+        const startOffset = getSourceOffset(
+            map, code,
+            [riotDocument.getText()],
+            reference.textSpan.start
+        );
+        // const endOffset = getSourceOffset(
+        //     map, code,
+        //     [riotDocument.getText()],
+        //     definition.textSpan.start + definition.textSpan.length
+        // );
+
+        reference.fileName = filePath;
+        reference.textSpan.start = startOffset;
+        reference.textSpan.length = reference.textSpan.length;
 
         return true;
     },

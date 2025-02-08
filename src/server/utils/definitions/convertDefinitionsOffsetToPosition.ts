@@ -1,9 +1,11 @@
 import TypeScriptLanguageService from "../../../TypeScriptLanguageService";
 
 import RiotDocument from "../../core/riot-documents/RiotDocument";
+
 import positionAtOffset from "../document/positionAtOffset";
 
-import convertRangeOffsetToPosition from "./convertRangeOffsetToPosition";
+import convertRangeOffsetToPosition from "../ts/convertRangeOffsetToPosition";
+
 import DefinitionResult from "./DefinitionResult";
 import OffsetDefinitionResult from "./OffsetDefinitionResult";
 
