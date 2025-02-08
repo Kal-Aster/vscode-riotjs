@@ -2,8 +2,14 @@ import getCachedOrActualDefinition from "../../utils/definitions/getCachedOrActu
 
 import { getState } from "../state";
 
+const disableAutomaticDefinitionCache = true;
+
 let isRunning = false;
 export default async function startDefinitionCaching() {
+    if (disableAutomaticDefinitionCache) {
+        return;
+    }
+
     if (isRunning) {
         return;
     }
