@@ -471,9 +471,9 @@ class TypeScriptLanguageService {
                 let i = completions.entries.length - 1;
                 i >= 0; i--
             ) {
-                const completionEntry = completions[i];
+                const completionEntry = completions.entries[i];
 
-                const fileName = completionEntry.data?.fileName;
+                const fileName = completionEntry?.data?.fileName;
                 if (fileName == null) {
                     continue;
                 }
