@@ -22,41 +22,44 @@ export default function getScopePropertiesAtOffset(
         tsLanguageService
     );
 
-    if (componentsProperty != null) {
-        const scopeComponentsNames = getScopeComponentsNamesAtOffset(
-            offset, riotDocument.getParserResult().output.template
-        );
-        scopeComponentsNames.map(scopeComponentName => {
-            const sourceFilePath = getEmbeddedComponentSourceFilePath(
-                componentsProperty,
-                tsLanguageService.getProgram().getTypeChecker(),
-                scopeComponentName
-            )?.replace(/\.d\.ts$/, "");
-            if (sourceFilePath == null) {
-                return null;
-            }
-
-            const riotDocument = getRiotDocumentByFilePath(sourceFilePath);
-            if (riotDocument == null) {
-                return null;
-            }
-
-            const { template } = riotDocument.getParserResult().output;
-            const slotNodes = extractSlotNodes(template);
-            const slotNode = slotNodes.find(({ name }) => name === "default");
-            if (slotNode == null) {
-                return;
-            }
-            
-            Object.entries(slotNode.props).forEach((
-                [prop, value]
-            ) => {
-                const propertyName = isPropertyAccessibleViaDotSyntax(prop) ? prop : `"${prop}"`;
-                // should infer type of prop
-                properties[prop] = `${propertyName}: any`;
-            });
-        })
+    if (componentsProperty == null) {
+        return properties;
     }
+
+    const scopeComponentsNames = getScopeComponentsNamesAtOffset(
+        offset, riotDocument.getParserResult().output.template
+    );
+    scopeComponentsNames.map(scopeComponentName => {
+        const sourceFilePath = getEmbeddedComponentSourceFilePath(
+            componentsProperty,
+            tsLanguageService.getProgram().getTypeChecker(),
+            scopeComponentName
+        )?.replace(/\.d\.ts$/, "");
+        if (sourceFilePath == null) {
+            return null;
+        }
+
+        const scopeRiotDocument = getRiotDocumentByFilePath(sourceFilePath);
+        if (scopeRiotDocument == null) {
+            return null;
+        }
+
+        const slotNodes = extractSlotNodes(
+            scopeRiotDocument.getParserResult().output.template
+        );
+        const slotNode = slotNodes.find(({ name }) => name === "default");
+        if (slotNode == null) {
+            return;
+        }
+        
+        Object.entries(slotNode.props).forEach((
+            [prop, value]
+        ) => {
+            const propertyName = isPropertyAccessibleViaDotSyntax(prop) ? prop : `"${prop}"`;
+            // should infer type of prop
+            properties[prop] = `${propertyName}: any`;
+        });
+    });
 
     return properties;
 }

@@ -39,8 +39,12 @@ const RiotDeclarationDocumentsHandler: (
             return undefined;
         }
 
-        const { code } = riotDocument.getCompiled();
-        return code;
+        const compiled = riotDocument.getCompiled();
+        if (compiled == null) {
+            return undefined;
+        }
+
+        return compiled.code;
     },
     getDocumentVersion(tsLanguageService, filePath) {
         const baseFilePath = filePath.replace(extraExtensionRegex, "");
@@ -59,7 +63,12 @@ const RiotDeclarationDocumentsHandler: (
             return true;
         }
 
-        const { code, map } = riotDocument.getCompiled();
+        const compiled = riotDocument.getCompiled();
+        if (compiled == null) {
+            return false;
+        }
+
+        const { code, map } = compiled;
         const startOffset = getSourceOffset(
             map, code,
             [riotDocument.getText()],
@@ -90,7 +99,12 @@ const RiotDeclarationDocumentsHandler: (
             return true;
         }
 
-        const { code, map } = riotDocument.getCompiled();
+        const compiled = riotDocument.getCompiled();
+        if (compiled == null) {
+            return false;
+        }
+
+        const { code, map } = compiled;
         const startOffset = getSourceOffset(
             map, code,
             [riotDocument.getText()],

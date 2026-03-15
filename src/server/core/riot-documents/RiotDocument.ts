@@ -42,6 +42,7 @@ export default class RiotDocument {
     private externalDeclaration: string | null = null;
 
     private compiledDocument: CompilerOutput | null = null;
+    private lastGoodCompiledDocument: CompilerOutput | null = null;
 
     readonly definitionCache: DefinitionCache;
 
@@ -144,14 +145,19 @@ export default class RiotDocument {
         return this;
     }
 
-    getCompiled() {
+    getCompiled(): CompilerOutput | null {
         if (this.compiledDocument != null) {
             return this.compiledDocument;
         }
 
-        const compiledComponent = compile(this.getParserResult() as any);
-        this.compiledDocument = compiledComponent;
-        return compiledComponent;
+        try {
+            const compiledComponent = compile(this.getParserResult() as any);
+            this.compiledDocument = compiledComponent;
+            this.lastGoodCompiledDocument = compiledComponent;
+            return compiledComponent;
+        } catch {
+            return this.lastGoodCompiledDocument;
+        }
     }
 
     getContent() {

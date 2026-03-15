@@ -29,9 +29,7 @@ export default function updateRiotDocument(
         riotDocuments.set(filePath, riotDocument);
         return riotDocument;
     } catch (error) {
-        // here there will be some diagnostics
         connection.console.error(`${error}`);
-        riotDocuments.delete(filePath);
-        return null;
+        return riotDocuments.get(filePath) ?? null;
     }
 }
